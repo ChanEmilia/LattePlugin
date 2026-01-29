@@ -1,0 +1,46 @@
+combatlog:
+  enabled: true
+  cooldowns: # Cooldowns in combat
+    TRIDENT: 200
+    ENDER_PEARL: 20
+    CHORUS_FRUIT: 200
+    WIND_CHARGE: 40
+death-drops: # Player heads drop on death
+  enabled: true
+explosion-damage: # Applies before armour damage reduction calculation
+  enabled: true
+  bed: 0.25
+  anchor: 0.25
+  cart: 0.4
+  crystal: 0.25
+item-limits:
+  message-type: ACTION_BAR # ACTION_BAR or TITLE
+  text: "You are overencumbered and cannot run!"
+  subtitle: "Drop excess items to move" # Only used if message-type is TITLE
+  enabled: true
+  TOTEM_OF_UNDYING: 1
+  ENDER_PEARL: 32
+  COBWEB: 64
+  EXPERIENCE_BOTTLE: 128
+  TURTLE_MASTER: 1
+  groups:
+    wind_items:
+      limit: 64
+      items:
+        WIND_CHARGE: 1 # See how awesome this is?
+        BREEZE_ROD: 4
+  effects:
+    BLINDNESS:
+      duration: 40 # In ticks!
+      amplifier: 3
+    SLOWNESS:
+      duration: 40
+      amplifier: 3
+    WEAKNESS:
+      duration: 40
+      amplifier: 1
+disabled-potions:
+  enabled: true
+  effects:
+    - WEAKNESS
+    - SLOW_FALLING
