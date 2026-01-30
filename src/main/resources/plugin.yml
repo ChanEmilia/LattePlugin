@@ -1,4 +1,4 @@
-name: LattePlugin
+name: LGPlugin
 version: 1.0.0
 main: io.github.chanemilia.lattePlugin.LattePlugin
 api-version: 1.21
