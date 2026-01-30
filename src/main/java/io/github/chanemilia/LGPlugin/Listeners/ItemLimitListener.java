@@ -75,11 +75,37 @@ public class ItemLimitListener implements Listener {
         }
     }
 
-                int duration = effectConfig.getInt("duration", 40);
-                int amplifier = effectConfig.getInt("amplifier", 0);
-                boolean ambient = effectConfig.getBoolean("ambient", false);
-                boolean particles = effectConfig.getBoolean("particles", false);
-                boolean icon = effectConfig.getBoolean("icon", true);
+    private void checkLimits(Player player) {
+        ConfigurationSection config = plugin.getConfig().getConfigurationSection("item-limits");
+        if (config == null) return;
+
+        boolean scanBundles = config.getBoolean("scan-bundles", true);
+        boolean scanShulkers = config.getBoolean("scan-shulkers", false);
+        boolean scanEchest = config.getBoolean("scan-echest", false);
+
+        // Count items
+        Map<Material, Integer> itemCounts = new HashMap<>();
+
+        // Main Inventory
+        countInventory(player.getInventory(), itemCounts, scanBundles, scanShulkers);
+
+        // Ender Chest
+        if (scanEchest) {
+            countInventory(player.getEnderChest(), itemCounts, scanBundles, scanShulkers);
+        }
+
+        // Cursor
+        ItemStack cursor = player.getItemOnCursor();
+        addItemCount(cursor, itemCounts, scanBundles, scanShulkers);
+
+
+        boolean isOverLimit = false;
+
+        ConfigurationSection itemsSection = config.getConfigurationSection("items");
+        if (itemsSection != null) {
+            for (String key : itemsSection.getKeys(false)) {
+                Material mat = Material.getMaterial(key);
+                if (mat == null) continue;
 
                 encumbranceEffects.add(new PotionEffect(type, duration, amplifier, ambient, particles, icon));
             }
