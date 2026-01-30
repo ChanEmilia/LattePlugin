@@ -17,7 +17,7 @@ public class ExplosionListener implements Listener {
 
     private final LGPlugin plugin;
 
-    public ExplosionListener(LattePlugin plugin) {
+    public ExplosionListener(LGPlugin plugin) {
         this.plugin = plugin;
     }
 
