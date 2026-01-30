@@ -9,7 +9,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 
 public class ReloadCommand implements CommandExecutor {
 
-    private final LattePlugin plugin;
+    private final LGPlugin plugin;
 
     public ReloadCommand(LattePlugin plugin) {
         this.plugin = plugin;
