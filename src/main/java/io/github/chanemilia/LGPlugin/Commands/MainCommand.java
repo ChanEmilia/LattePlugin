@@ -11,7 +11,7 @@ public class ReloadCommand implements CommandExecutor {
 
     private final LGPlugin plugin;
 
-    public ReloadCommand(LGPlugin plugin) {
+    public MainCommand(LGPlugin plugin) {
         this.plugin = plugin;
     }
 
