@@ -1,4 +1,4 @@
-package io.github.chanemilia.lattePlugin.Commands;
+package io.github.chanemilia.LGPlugin.Commands;
 
 import io.github.chanemilia.LGPlugin.LGPlugin;
 import org.bukkit.command.Command;
