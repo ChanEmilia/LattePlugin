@@ -122,7 +122,11 @@ public class ItemLimitListener implements Listener {
             Player player = Bukkit.getPlayer(uuid);
             if (player != null && player.isOnline()) {
 
-                Component msgComp = Component.text(encumbranceText, NamedTextColor.RED);
+                    int groupTotal = 0;
+                    if (groupItems != null) {
+                        for (String itemKey : groupItems.getKeys(false)) {
+                            Material mat = Material.getMaterial(itemKey);
+                            if (mat == null) continue;
 
                 if ("TITLE".equals(encumbranceMessageType)) {
                     Component subComp = Component.text(encumbranceSubtitle, NamedTextColor.RED);
