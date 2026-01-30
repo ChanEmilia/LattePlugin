@@ -29,7 +29,7 @@ public class EffectListener implements Listener {
         PotionEffectType type = newEffect.getType();
         ConfigurationSection effectsConfig = plugin.getConfig().getConfigurationSection("disabled-potions.effects");
 
-        List<String> disabledPotions = plugin.getConfig().getStringList("disabled-effects.effects");
+        if (effectsConfig == null) return;
 
         if (disabledPotions.contains(type.getName())) {
             event.setCancelled(true);
