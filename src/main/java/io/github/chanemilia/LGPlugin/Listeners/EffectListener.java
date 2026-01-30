@@ -23,7 +23,11 @@ public class EffectListener implements Listener {
     public void onPotionEffect(EntityPotionEffectEvent event) {
         if (!(event.getEntity() instanceof Player)) return;
 
-        PotionEffectType type = event.getModifiedType();
+        PotionEffect newEffect = event.getNewEffect();
+        if (newEffect == null) return;
+
+        PotionEffectType type = newEffect.getType();
+        ConfigurationSection effectsConfig = plugin.getConfig().getConfigurationSection("disabled-potions.effects");
 
         List<String> disabledPotions = plugin.getConfig().getStringList("disabled-effects.effects");
 
