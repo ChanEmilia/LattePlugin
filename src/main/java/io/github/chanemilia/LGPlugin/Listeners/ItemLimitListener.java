@@ -33,11 +33,7 @@ import java.time.Duration;
 import java.util.*;
 
 public class ItemLimitListener implements Listener {
-
-    private final LattePlugin plugin;
-
-    private final Map<UUID, Map<String, Long>> messageCooldowns = new HashMap<>();
-    private final List<LimitRule> limits = new ArrayList<>();
+    private final LGPlugin plugin;
     private final Set<UUID> encumberedPlayers = new HashSet<>();
 
     // Encumbrance Settings
