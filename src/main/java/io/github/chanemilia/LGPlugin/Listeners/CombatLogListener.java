@@ -1,6 +1,6 @@
 package io.github.chanemilia.lattePlugin.Listeners;
 
-import io.github.chanemilia.lattePlugin.LattePlugin;
+import io.github.chanemilia.LGPlugin.LGPlugin;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
