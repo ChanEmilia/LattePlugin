@@ -53,6 +53,29 @@ public class CombatLogListener implements Listener {
         tagPlayers(victim, attacker);
     }
 
+    @EventHandler
+    public void onItemUse(PlayerInteractEvent event) {
+        if (event.getItem() == null) return;
+
+        Player player = event.getPlayer();
+        Material mat = event.getItem().getType();
+
+        ConfigurationSection cooldowns = plugin.getConfig().getConfigurationSection("combatlog.cooldowns");
+        if (cooldowns != null && cooldowns.contains(mat.name())) {
+            ConfigurationSection itemConfig = cooldowns.getConfigurationSection(mat.name());
+            if (itemConfig != null) {
+                boolean global = itemConfig.getBoolean("global", true);
+                int duration = itemConfig.getInt("duration", 0);
+
+                if (global || timers.containsKey(player.getUniqueId())) {
+                    if (!player.hasCooldown(mat)) {
+                        player.setCooldown(mat, duration);
+                    }
+                }
+            }
+        }
+    }
+
     private void tagPlayers(Player p1, Player p2) {
         setCombat(p1.getUniqueId(), p2.getUniqueId());
         setCombat(p2.getUniqueId(), p1.getUniqueId());
