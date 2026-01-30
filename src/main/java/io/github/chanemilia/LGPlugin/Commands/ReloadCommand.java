@@ -1,6 +1,6 @@
 package io.github.chanemilia.lattePlugin.Commands;
 
-import io.github.chanemilia.lattePlugin.LattePlugin;
+import io.github.chanemilia.LGPlugin.LGPlugin;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
