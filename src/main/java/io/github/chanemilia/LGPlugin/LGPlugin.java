@@ -13,7 +13,11 @@ public class LGPlugin extends JavaPlugin {
     public void onEnable() {
         saveDefaultConfig();
         loadPlugin();
-        getCommand("lattereload").setExecutor(new ReloadCommand(this));
+
+        if (getCommand("lgplugin") != null) {
+            getCommand("lgplugin").setExecutor(new MainCommand(this));
+        }
+
         getLogger().info("Good job Nina Iseri your plugin works!");
     }
 
