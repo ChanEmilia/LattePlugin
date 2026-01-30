@@ -188,17 +188,12 @@ public class ItemLimitListener implements Listener {
         String text = config.getString("text", "You are overencumbered!");
         String subtitle = config.getString("subtitle", "");
 
-            if (current > max) {
-                isEncumbered = true;
-                sendLimitMessage(player, rule.getName(), max);
-            }
-        }
-
-        if (isEncumbered) {
-            encumberedPlayers.add(player.getUniqueId());
-            if (player.isSprinting()) {
-                player.setSprinting(false);
-            }
+        if (msgType.equals("TITLE")) {
+            player.showTitle(Title.title(
+                    Component.text(text, NamedTextColor.RED),
+                    Component.text(subtitle, NamedTextColor.RED),
+                    Title.Times.times(Duration.ofMillis(0), Duration.ofMillis(1000), Duration.ofMillis(500))
+            ));
         } else {
             encumberedPlayers.remove(player.getUniqueId());
         }
