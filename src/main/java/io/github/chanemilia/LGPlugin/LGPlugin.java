@@ -44,7 +44,7 @@ public class LattePlugin extends JavaPlugin {
             getServer().getPluginManager().registerEvents(new DeathListener(), this);
         }
 
-        if (getConfig().getBoolean("disabled-effects.enabled", true)) {
+        if (getConfig().getBoolean("disabled-potions.enabled", true)) {
             getServer().getPluginManager().registerEvents(new EffectListener(this), this);
         }
 
