@@ -107,10 +107,15 @@ public class ItemLimitListener implements Listener {
                 Material mat = Material.getMaterial(key);
                 if (mat == null) continue;
 
-                encumbranceEffects.add(new PotionEffect(type, duration, amplifier, ambient, particles, icon));
+                int limit = itemsSection.getInt(key);
+                int current = itemCounts.getOrDefault(mat, 0);
+
+                if (current > limit) {
+                    isOverLimit = true;
+                    break;
+                }
             }
         }
-    }
 
     private void tick() {
         for (UUID uuid : encumberedPlayers) {
