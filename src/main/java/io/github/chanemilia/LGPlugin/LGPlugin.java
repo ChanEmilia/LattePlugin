@@ -49,7 +49,7 @@ public class LGPlugin extends JavaPlugin {
         }
 
         if (getConfig().getBoolean("restricted-enchantments.enabled", true)) {
-            getServer().getPluginManager().registerEvents(new EffectListener(this), this);
+            getServer().getPluginManager().registerEvents(new EnchantListener(this), this);
         }
 
         if (getConfig().getBoolean("explosion-damage.enabled", true)) {
