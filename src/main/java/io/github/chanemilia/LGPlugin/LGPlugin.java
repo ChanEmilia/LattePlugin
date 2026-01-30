@@ -1,7 +1,7 @@
 package io.github.chanemilia.lattePlugin;
 
-import io.github.chanemilia.lattePlugin.Listeners.*;
-import io.github.chanemilia.lattePlugin.Commands.*;
+import io.github.chanemilia.LGPlugin.Listeners.*;
+import io.github.chanemilia.LGPlugin.Commands.*;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
