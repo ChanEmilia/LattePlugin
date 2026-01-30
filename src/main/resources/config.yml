@@ -7,6 +7,11 @@ combatlog:
     WIND_CHARGE: 40
 death-drops: # Player heads drop on death
   enabled: true
+disabled-potions:
+  enabled: true
+  effects:
+    - WEAKNESS
+    - SLOW_FALLING
 explosion-damage: # Applies before armour damage reduction calculation
   enabled: true
   bed: 0.25
