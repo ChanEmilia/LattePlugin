@@ -31,8 +31,12 @@ public class EffectListener implements Listener {
 
         if (effectsConfig == null) return;
 
-        if (disabledPotions.contains(type.getName())) {
-            event.setCancelled(true);
+        if (effectsConfig.contains(type.getName())) {
+            int maxAmplifier = effectsConfig.getInt(type.getName());
+
+            if (newEffect.getAmplifier() > maxAmplifier) {
+                event.setCancelled(true);
+            }
         }
     }
 }
