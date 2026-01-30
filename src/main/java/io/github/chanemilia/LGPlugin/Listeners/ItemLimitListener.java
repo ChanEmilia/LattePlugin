@@ -179,22 +179,10 @@ public class ItemLimitListener implements Listener {
         }
     }
 
-                // Apply effects
-                for (PotionEffect effect : encumbranceEffects) {
-                    player.addPotionEffect(effect);
-                }
-            }
+    private void applyEncumbrance(Player player, ConfigurationSection config) {
+        for (PotionEffect effect : encumbranceEffects) {
+            player.addPotionEffect(effect);
         }
-    }
-
-    private void scheduleCheck(Player player) {
-        Bukkit.getScheduler().runTask(plugin, () -> checkEncumbrance(player));
-    }
-
-    private void checkEncumbrance(Player player) {
-        if (!player.isOnline()) return;
-
-        boolean isEncumbered = false;
 
         for (LimitRule rule : limits) {
             int current = getCurrentScore(player, rule);
