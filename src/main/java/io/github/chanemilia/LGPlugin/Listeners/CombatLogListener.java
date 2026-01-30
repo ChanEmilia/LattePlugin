@@ -186,49 +186,12 @@ public class CombatLogListener implements Listener {
         combatPairs.clear();
     }
 
-    @EventHandler(ignoreCancelled = true)
-    public void onProjectileLaunch(ProjectileLaunchEvent event) {
-        if (!(event.getEntity().getShooter() instanceof Player player)) return;
-        if (!isCombatTagged(player.getUniqueId())) return;
-
-        Material material = null;
-
-        if (event.getEntity() instanceof org.bukkit.entity.ThrowableProjectile throwable) {
-            material = throwable.getItem().getType();
-        } else if (event.getEntity() instanceof Trident) {
-            material = Material.TRIDENT;
-        } else if (event.getEntityType().name().contains("WIND_CHARGE")) {
-            material = Material.getMaterial("WIND_CHARGE");
-        } else if (event.getEntity() instanceof org.bukkit.entity.Firework) {
-            material = Material.FIREWORK_ROCKET;
-        }
-
-        if (material != null) {
-            applyCooldown(player, material);
-        }
-    }
-
-    @EventHandler(ignoreCancelled = true)
-    public void onConsume(PlayerItemConsumeEvent event) {
-        Player player = event.getPlayer();
-        if (!isCombatTagged(player.getUniqueId())) return;
-
-        applyCooldown(player, event.getItem().getType());
-    }
-
-    private void applyCooldown(Player player, Material material) {
-        if (material == null) return;
-
-        ConfigurationSection cooldowns = plugin.getConfig().getConfigurationSection("combatlog.cooldowns");
-        if (cooldowns == null) return;
-
-        int ticks = cooldowns.getInt(material.name(), -1);
-        if (ticks > 0) {
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                if (player.isOnline()) {
-                    player.setCooldown(material, ticks);
-                }
-            });
+    private void clearCombat(UUID player) {
+        timers.remove(player);
+        combatPairs.remove(player);
+        if (tasks.containsKey(player)) {
+            tasks.get(player).cancel();
+            tasks.remove(player);
         }
     }
 }
