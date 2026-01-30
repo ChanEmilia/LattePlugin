@@ -65,10 +65,15 @@ public class ItemLimitListener implements Listener {
                 if (effectConfig == null) continue;
 
                 PotionEffectType type = PotionEffectType.getByName(key);
-                if (type == null) {
-                    plugin.getLogger().warning("Invalid encumbrance effect type in config: " + key);
-                    continue;
-                }
+                if (type == null) continue;
+
+                ConfigurationSection eff = effectsSection.getConfigurationSection(key);
+                int duration = eff.getInt("duration", 40);
+                int amplifier = eff.getInt("amplifier", 0);
+                encumbranceEffects.add(new PotionEffect(type, duration, amplifier));
+            }
+        }
+    }
 
                 int duration = effectConfig.getInt("duration", 40);
                 int amplifier = effectConfig.getInt("amplifier", 0);
