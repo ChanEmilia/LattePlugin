@@ -48,6 +48,10 @@ public class LattePlugin extends JavaPlugin {
             getServer().getPluginManager().registerEvents(new EffectListener(this), this);
         }
 
+        if (getConfig().getBoolean("restricted-enchantments.enabled", true)) {
+            getServer().getPluginManager().registerEvents(new EffectListener(this), this);
+        }
+
         if (getConfig().getBoolean("explosion-damage.enabled", true)) {
             getServer().getPluginManager().registerEvents(new ExplosionListener(this), this);
         }
