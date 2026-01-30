@@ -45,9 +45,15 @@ public class ItemLimitListener implements Listener {
 
     public ItemLimitListener(LGPlugin plugin) {
         this.plugin = plugin;
-        loadLimits();
-        reloadEncumbranceSettings();
-        Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 10L, 10L);
+        Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 20L, 20L); // Tick every second
+    }
+
+    private void tick() {
+        reloadEffects();
+
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            checkLimits(player);
+        }
     }
 
     private void reloadEncumbranceSettings() {
