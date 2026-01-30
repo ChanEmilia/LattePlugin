@@ -58,24 +58,8 @@ public class ItemLimitListener implements Listener {
 
     private void reloadEffects() {
         encumbranceEffects.clear();
-        ConfigurationSection section = plugin.getConfig().getConfigurationSection("item-limits");
-
-        if (section == null) {
-            // config-defaults
-            encumbranceMessageType = "ACTION_BAR";
-            encumbranceText = "You are overencumbered and cannot run!";
-            encumbranceEffects.add(new PotionEffect(PotionEffectType.BLINDNESS, 40, 3, false, false, true));
-            encumbranceEffects.add(new PotionEffect(PotionEffectType.SLOWNESS, 40, 3, false, false, true));
-            encumbranceEffects.add(new PotionEffect(PotionEffectType.WEAKNESS, 40, 1, false, false, true));
-            return;
-        }
-
-        encumbranceMessageType = section.getString("message-type", "ACTION_BAR").toUpperCase();
-        encumbranceText = section.getString("text", "You are overencumbered and cannot run!");
-        encumbranceSubtitle = section.getString("subtitle", "");
-
-        if (section.isConfigurationSection("effects")) {
-            ConfigurationSection effectsSection = section.getConfigurationSection("effects");
+        ConfigurationSection effectsSection = plugin.getConfig().getConfigurationSection("item-limits.effects");
+        if (effectsSection != null) {
             for (String key : effectsSection.getKeys(false)) {
                 ConfigurationSection effectConfig = effectsSection.getConfigurationSection(key);
                 if (effectConfig == null) continue;
