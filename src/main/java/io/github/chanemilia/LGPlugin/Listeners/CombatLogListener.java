@@ -71,6 +71,11 @@ public class CombatLogListener implements Listener {
     private void tagPlayers(Player p1, Player p2) {
         setCombat(p1.getUniqueId(), p2.getUniqueId());
         setCombat(p2.getUniqueId(), p1.getUniqueId());
+
+        if (plugin.getConfig().getBoolean("combatlog.disable-elytra", false)) {
+            if (p1.isGliding()) p1.setGliding(false);
+            if (p2.isGliding()) p2.setGliding(false);
+        }
     }
 
     private void setCombat(UUID player, UUID opponent) {
