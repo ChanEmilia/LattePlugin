@@ -1,7 +1,7 @@
 # Very lightweight combat log
 combatlog:
   enabled: true
-  disable-elytra: true
+  disable-elytra: true # Disable elytra in combat
   cooldowns: # Cooldowns to apply in combat
     TRIDENT: # Item names in this config use https: //hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
       duration: 200 # In ticks
