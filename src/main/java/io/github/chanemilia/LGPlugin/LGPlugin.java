@@ -2,6 +2,7 @@ package io.github.chanemilia.LGPlugin;
 
 import io.github.chanemilia.LGPlugin.Listeners.*;
 import io.github.chanemilia.LGPlugin.Commands.MainCommand;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
