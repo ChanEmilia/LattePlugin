@@ -30,7 +30,7 @@ disabled-potions:
 # Disallow specific enchantments on specific items
 restricted-enchantments:
   enabled: true
-  items:
+  items: # Priority goes down the list
     MACE: # Item names are inclusive, ie HELMET will apply to every item with helmet in its name
       glint: false # Whether or not to show the enchantment glint
       mode: whitelist # Only allows listed enchantments, defaults to blacklist
