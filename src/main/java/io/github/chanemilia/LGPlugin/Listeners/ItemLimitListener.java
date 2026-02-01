@@ -152,7 +152,7 @@ public class ItemLimitListener implements Listener {
         } else if (scanShulkers && item.hasItemMeta() && item.getItemMeta() instanceof BlockStateMeta blockMeta) {
             if (blockMeta.getBlockState() instanceof ShulkerBox shulker) {
                 for (ItemStack content : shulker.getInventory().getContents()) {
-                    addItemCount(content, counts, scanBundles, scanShulkers); // Recurse, should be pretty efficient
+                    addItemCount(content, counts, scanBundles, scanShulkers);
                 }
             }
         }
