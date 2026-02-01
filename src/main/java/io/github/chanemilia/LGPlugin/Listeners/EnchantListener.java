@@ -122,6 +122,8 @@ public class EnchantListener implements Listener {
         String bestMatch = null;
 
         for (String key : itemsSection.getKeys(false)) {
+            if (key.equalsIgnoreCase("GLOBAL")) continue;
+
             if (materialName.contains(key)) {
                 if (bestMatch == null || key.length() > bestMatch.length()) {
                     bestMatch = key;
