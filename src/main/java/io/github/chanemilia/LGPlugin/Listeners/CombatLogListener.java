@@ -127,6 +127,10 @@ public class CombatLogListener implements Listener {
                                 .append(Component.text(time + "s", NamedTextColor.RED))
                 );
 
+                if (time % 20 == 0 && plugin.getConfig().getBoolean("combatlog.disable-elytra", false)) {
+                    breakElytra(p);
+                }
+
                 timers.put(player, time - 1);
             }
         };
