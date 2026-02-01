@@ -1,6 +1,7 @@
 package io.github.chanemilia.LGPlugin.Listeners;
 
 import io.github.chanemilia.LGPlugin.LGPlugin;
+import io.github.chanemilia.LGPlugin.Utils.ItemMatcher;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
@@ -21,11 +22,15 @@ import org.bukkit.potion.PotionEffectType;
 
 import java.time.Duration;
 import java.util.*;
+import java.util.function.Consumer;
 
 public class ItemLimitListener implements Listener {
     private final LGPlugin plugin;
     private final Set<UUID> encumberedPlayers = new HashSet<>();
     private final List<PotionEffect> encumbranceEffects = new ArrayList<>();
+
+    private final List<LimitRule> directLimits = new ArrayList<>();
+    private final List<GroupRule> groupLimits = new ArrayList<>();
 
     public ItemLimitListener(LGPlugin plugin) {
         this.plugin = plugin;
@@ -33,14 +38,14 @@ public class ItemLimitListener implements Listener {
     }
 
     private void tick() {
-        reloadEffects();
+        reloadConfiguration();
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             checkLimits(player);
         }
     }
 
-    private void reloadEffects() {
+    private void reloadConfiguration() {
         encumbranceEffects.clear();
         ConfigurationSection effectsSection = plugin.getConfig().getConfigurationSection("item-limits.effects");
         if (effectsSection != null) {
@@ -56,6 +61,50 @@ public class ItemLimitListener implements Listener {
                 encumbranceEffects.add(new PotionEffect(type, duration, amplifier));
             }
         }
+
+        directLimits.clear();
+        List<Map<?, ?>> limits = plugin.getConfig().getMapList("item-limits.limits");
+        for (Map<?, ?> map : limits) {
+            String matName = (String) map.get("material");
+
+            Object limitObj = map.get("limit");
+            int limit = (limitObj instanceof Number) ? ((Number) limitObj).intValue() : 64;
+
+            Map<?, ?> nbt = (Map<?, ?>) map.get("nbt");
+
+            if (matName != null) {
+                directLimits.add(new LimitRule(matName, limit, nbt));
+            }
+        }
+
+        groupLimits.clear();
+        ConfigurationSection groupsSection = plugin.getConfig().getConfigurationSection("item-limits.groups");
+        if (groupsSection != null) {
+            for (String groupKey : groupsSection.getKeys(false)) {
+                ConfigurationSection group = groupsSection.getConfigurationSection(groupKey);
+                if (group == null) continue;
+
+                int limit = group.getInt("limit");
+                List<WeightedItem> items = new ArrayList<>();
+
+                List<Map<?, ?>> groupItems = group.getMapList("items");
+                for (Map<?, ?> itemMap : groupItems) {
+                    String matName = (String) itemMap.get("material");
+
+                    // Fix: Manual check for weight as well
+                    Object weightObj = itemMap.get("weight");
+                    int weight = (weightObj instanceof Number) ? ((Number) weightObj).intValue() : 1;
+
+                    Map<?, ?> nbt = (Map<?, ?>) itemMap.get("nbt");
+
+                    if (matName != null) {
+                        items.add(new WeightedItem(matName, weight, nbt));
+                    }
+                }
+
+                groupLimits.add(new GroupRule(groupKey, limit, items));
+            }
+        }
     }
 
     private void checkLimits(Player player) {
@@ -66,66 +115,48 @@ public class ItemLimitListener implements Listener {
         boolean scanShulkers = config.getBoolean("scan-shulkers", false);
         boolean scanEchest = config.getBoolean("scan-echest", false);
 
-        // Count items
-        Map<Material, Integer> itemCounts = new HashMap<>();
+        Map<LimitRule, Integer> currentDirectCounts = new HashMap<>();
+        Map<GroupRule, Integer> currentGroupCounts = new HashMap<>();
 
-        // Main Inventory
-        countInventory(player.getInventory(), itemCounts, scanBundles, scanShulkers);
+        Consumer<ItemStack> itemScanner = item -> {
+            if (item == null || item.getType() == Material.AIR) return;
 
-        // Ender Chest
+            // Check Direct Limits
+            for (LimitRule rule : directLimits) {
+                if (rule.matches(item)) {
+                    currentDirectCounts.merge(rule, item.getAmount(), Integer::sum);
+                }
+            }
+
+            // Check Group Limits
+            for (GroupRule group : groupLimits) {
+                int weight = group.getWeight(item);
+                if (weight > 0) {
+                    currentGroupCounts.merge(group, item.getAmount() * weight, Integer::sum);
+                }
+            }
+        };
+
+        scanInventory(player.getInventory(), itemScanner, scanBundles, scanShulkers);
         if (scanEchest) {
-            countInventory(player.getEnderChest(), itemCounts, scanBundles, scanShulkers);
+            scanInventory(player.getEnderChest(), itemScanner, scanBundles, scanShulkers);
         }
-
-        // Cursor
-        ItemStack cursor = player.getItemOnCursor();
-        addItemCount(cursor, itemCounts, scanBundles, scanShulkers);
-
+        itemScanner.accept(player.getItemOnCursor());
 
         boolean isOverLimit = false;
 
-        ConfigurationSection itemsSection = config.getConfigurationSection("items");
-        if (itemsSection != null) {
-            for (String key : itemsSection.getKeys(false)) {
-                Material mat = Material.getMaterial(key);
-                if (mat == null) continue;
-
-                int limit = itemsSection.getInt(key);
-                int current = itemCounts.getOrDefault(mat, 0);
-
-                if (current > limit) {
-                    isOverLimit = true;
-                    break;
-                }
+        for (Map.Entry<LimitRule, Integer> entry : currentDirectCounts.entrySet()) {
+            if (entry.getValue() > entry.getKey().limit) {
+                isOverLimit = true;
+                break;
             }
         }
 
         if (!isOverLimit) {
-            ConfigurationSection groupsSection = config.getConfigurationSection("groups");
-            if (groupsSection != null) {
-                for (String groupKey : groupsSection.getKeys(false)) {
-                    ConfigurationSection group = groupsSection.getConfigurationSection(groupKey);
-                    if (group == null) continue;
-
-                    int limit = group.getInt("limit");
-                    ConfigurationSection groupItems = group.getConfigurationSection("items");
-
-                    int groupTotal = 0;
-                    if (groupItems != null) {
-                        for (String itemKey : groupItems.getKeys(false)) {
-                            Material mat = Material.getMaterial(itemKey);
-                            if (mat == null) continue;
-
-                            int weight = groupItems.getInt(itemKey, 1);
-                            int count = itemCounts.getOrDefault(mat, 0);
-                            groupTotal += (count * weight);
-                        }
-                    }
-
-                    if (groupTotal > limit) {
-                        isOverLimit = true;
-                        break;
-                    }
+            for (Map.Entry<GroupRule, Integer> entry : currentGroupCounts.entrySet()) {
+                if (entry.getValue() > entry.getKey().limit) {
+                    isOverLimit = true;
+                    break;
                 }
             }
         }
@@ -138,25 +169,25 @@ public class ItemLimitListener implements Listener {
         }
     }
 
-    private void countInventory(Inventory inv, Map<Material, Integer> counts, boolean scanBundles, boolean scanShulkers) {
+    private void scanInventory(Inventory inv, Consumer<ItemStack> consumer, boolean scanBundles, boolean scanShulkers) {
         for (ItemStack item : inv.getContents()) {
-            addItemCount(item, counts, scanBundles, scanShulkers);
+            scanItemRecursive(item, consumer, scanBundles, scanShulkers);
         }
     }
 
-    private void addItemCount(ItemStack item, Map<Material, Integer> counts, boolean scanBundles, boolean scanShulkers) {
+    private void scanItemRecursive(ItemStack item, Consumer<ItemStack> consumer, boolean scanBundles, boolean scanShulkers) {
         if (item == null || item.getType() == Material.AIR) return;
 
-        counts.merge(item.getType(), item.getAmount(), Integer::sum);
+        consumer.accept(item);
 
         if (scanBundles && item.hasItemMeta() && item.getItemMeta() instanceof BundleMeta bundleMeta) {
             for (ItemStack content : bundleMeta.getItems()) {
-                addItemCount(content, counts, scanBundles, scanShulkers);
+                scanItemRecursive(content, consumer, scanBundles, scanShulkers);
             }
         } else if (scanShulkers && item.hasItemMeta() && item.getItemMeta() instanceof BlockStateMeta blockMeta) {
             if (blockMeta.getBlockState() instanceof ShulkerBox shulker) {
                 for (ItemStack content : shulker.getInventory().getContents()) {
-                    addItemCount(content, counts, scanBundles, scanShulkers);
+                    scanItemRecursive(content, consumer, scanBundles, scanShulkers);
                 }
             }
         }
@@ -179,6 +210,61 @@ public class ItemLimitListener implements Listener {
             ));
         } else {
             player.sendActionBar(Component.text(text, NamedTextColor.RED));
+        }
+    }
+
+    private static class LimitRule {
+        final String material;
+        final int limit;
+        final Map<?, ?> nbt;
+
+        LimitRule(String material, int limit, Map<?, ?> nbt) {
+            this.material = material;
+            this.limit = limit;
+            this.nbt = nbt;
+        }
+
+        boolean matches(ItemStack item) {
+            if (!item.getType().name().equals(material)) return false;
+            return nbt == null || ItemMatcher.checkNbt(item, nbt);
+        }
+    }
+
+    private static class GroupRule {
+        final String name;
+        final int limit;
+        final List<WeightedItem> items;
+
+        GroupRule(String name, int limit, List<WeightedItem> items) {
+            this.name = name;
+            this.limit = limit;
+            this.items = items;
+        }
+
+        int getWeight(ItemStack item) {
+            for (WeightedItem weightedItem : items) {
+                if (weightedItem.matches(item)) {
+                    return weightedItem.weight;
+                }
+            }
+            return 0;
+        }
+    }
+
+    private static class WeightedItem {
+        final String material;
+        final int weight;
+        final Map<?, ?> nbt;
+
+        WeightedItem(String material, int weight, Map<?, ?> nbt) {
+            this.material = material;
+            this.weight = weight;
+            this.nbt = nbt;
+        }
+
+        boolean matches(ItemStack item) {
+            if (!item.getType().name().equals(material)) return false;
+            return nbt == null || ItemMatcher.checkNbt(item, nbt);
         }
     }
 }

@@ -1,22 +1,20 @@
 package io.github.chanemilia.LGPlugin.Listeners;
 
 import io.github.chanemilia.LGPlugin.LGPlugin;
+import io.github.chanemilia.LGPlugin.Utils.ItemMatcher;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerKickEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.entity.ProjectileLaunchEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -25,6 +23,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -34,7 +33,7 @@ public class CombatLogListener implements Listener {
     private final NamespacedKey durabilityKey;
 
     private static final int COMBAT_TIME = 30;
-    private static final double MIN_DAMAGE = 1.0; // To stop player fists from triggering combat tag which is annoying
+    private static final double MIN_DAMAGE = 1.0;
 
     private final Map<UUID, UUID> combatPairs = new HashMap<>();
     private final Map<UUID, Integer> timers = new HashMap<>();
@@ -54,25 +53,73 @@ public class CombatLogListener implements Listener {
         tagPlayers(victim, attacker);
     }
 
-    @EventHandler
-    public void onItemUse(PlayerInteractEvent event) {
-        if (event.getItem() == null) return;
+    @EventHandler(ignoreCancelled = true)
+    public void onProjectileLaunch(ProjectileLaunchEvent event) {
+        if (!(event.getEntity().getShooter() instanceof Player player)) return;
 
-        Player player = event.getPlayer();
-        Material mat = event.getItem().getType();
+        ItemStack item = player.getInventory().getItemInMainHand();
 
-        ConfigurationSection cooldowns = plugin.getConfig().getConfigurationSection("combatlog.cooldowns");
-        if (cooldowns != null && cooldowns.contains(mat.name())) {
-            ConfigurationSection itemConfig = cooldowns.getConfigurationSection(mat.name());
-            if (itemConfig != null) {
-                boolean global = itemConfig.getBoolean("global", true);
-                int duration = itemConfig.getInt("duration", 0);
+        if (!isProjectileItem(item.getType())) {
+            ItemStack off = player.getInventory().getItemInOffHand();
+            if (isProjectileItem(off.getType())) {
+                item = off;
+            }
+        }
 
-                if (global || timers.containsKey(player.getUniqueId())) {
-                    if (!player.hasCooldown(mat)) {
-                        player.setCooldown(mat, duration);
-                    }
-                }
+        tryApplyCooldown(player, item);
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onRiptide(PlayerRiptideEvent event) {
+        tryApplyCooldown(event.getPlayer(), event.getItem());
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onConsume(PlayerItemConsumeEvent event) {
+        tryApplyCooldown(event.getPlayer(), event.getItem());
+    }
+
+    private boolean isProjectileItem(Material mat) {
+        return mat == Material.ENDER_PEARL || mat == Material.WIND_CHARGE ||
+                mat == Material.TRIDENT || mat == Material.SNOWBALL ||
+                mat == Material.EGG || mat == Material.SPLASH_POTION ||
+                mat == Material.LINGERING_POTION;
+    }
+
+    private void tryApplyCooldown(Player player, ItemStack item) {
+        if (item == null || item.getType() == Material.AIR) return;
+
+        List<Map<?, ?>> rules = plugin.getConfig().getMapList("combatlog.cooldowns");
+        Material mat = item.getType();
+        int maxDuration = -1;
+
+        for (Map<?, ?> rule : rules) {
+            String matName = (String) rule.get("material");
+            if (matName == null || !matName.equals(mat.name())) continue;
+
+            Object globalObj = rule.get("global");
+            boolean global = (globalObj instanceof Boolean) ? (Boolean) globalObj : false;
+
+            boolean inCombat = timers.containsKey(player.getUniqueId());
+
+            if (!global && !inCombat) continue;
+
+            if (rule.containsKey("nbt")) {
+                Map<?, ?> nbtRules = (Map<?, ?>) rule.get("nbt");
+                if (!ItemMatcher.checkNbt(item, nbtRules)) continue;
+            }
+
+            Object durationObj = rule.get("duration");
+            int duration = (durationObj instanceof Integer) ? (Integer) durationObj : 0;
+
+            if (duration > maxDuration) {
+                maxDuration = duration;
+            }
+        }
+
+        if (maxDuration > 0) {
+            if (!player.hasCooldown(mat) || player.getCooldown(mat) < maxDuration) {
+                player.setCooldown(mat, maxDuration);
             }
         }
     }
