@@ -26,6 +26,7 @@ import java.util.UUID;
 public class CombatLogListener implements Listener {
 
     private final LGPlugin plugin;
+    private final NamespacedKey durabilityKey;
 
     private static final int COMBAT_TIME = 30;
     private static final double MIN_DAMAGE = 1.0; // To stop player fists from triggering combat tag which is annoying
