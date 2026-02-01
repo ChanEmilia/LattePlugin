@@ -73,8 +73,10 @@ public class CombatLogListener implements Listener {
         if (!(event.getEntity() instanceof Player player)) return;
         if (!event.isGliding()) return;
 
-        if (plugin.getConfig().getBoolean("combatlog.disable-elytra", false) && timers.containsKey(player.getUniqueId())) {
-            event.setCancelled(true);
+        if (event.isGliding() && timers.containsKey(player.getUniqueId())) {
+            if (plugin.getConfig().getBoolean("combatlog.disable-elytra", false)) {
+                event.setCancelled(true);
+            }
         }
     }
 
