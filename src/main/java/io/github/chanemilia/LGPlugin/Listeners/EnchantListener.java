@@ -145,21 +145,11 @@ public class EnchantListener implements Listener {
         ConfigurationSection enchantsConfig = itemConfig.getConfigurationSection("enchantments");
         String enchName = ench.getKey().getKey().toUpperCase();
 
-        if (mode.equals("whitelist")) {
-            if (enchantsConfig == null || !enchantsConfig.contains(enchName)) {
-                return 0;
-            }
-
-            int configMax = enchantsConfig.getInt(enchName);
-            return Math.min(currentLevel, configMax);
-
-        } else {
-            if (enchantsConfig == null || !enchantsConfig.contains(enchName)) {
-                return currentLevel;
-            }
-
-            int configMax = enchantsConfig.getInt(enchName);
-            return Math.min(currentLevel, configMax);
+        if (enchantsConfig == null || !enchantsConfig.contains(enchName)) {
+            return currentLevel;
         }
+
+        int configMax = enchantsConfig.getInt(enchName);
+        return Math.min(currentLevel, configMax);
     }
 }
