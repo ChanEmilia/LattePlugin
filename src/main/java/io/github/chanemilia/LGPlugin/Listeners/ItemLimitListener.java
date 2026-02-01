@@ -147,7 +147,7 @@ public class ItemLimitListener implements Listener {
 
         if (scanBundles && item.hasItemMeta() && item.getItemMeta() instanceof BundleMeta bundleMeta) {
             for (ItemStack content : bundleMeta.getItems()) {
-                addItemCount(content, counts, scanBundles, scanShulkers); // Recurse for nested bundles? usually disabled in vanilla but good safety
+                addItemCount(content, counts, scanBundles, scanShulkers);
             }
         } else if (scanShulkers && item.hasItemMeta() && item.getItemMeta() instanceof BlockStateMeta blockMeta) {
             if (blockMeta.getBlockState() instanceof ShulkerBox shulker) {
