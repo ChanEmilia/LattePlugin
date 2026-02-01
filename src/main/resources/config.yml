@@ -45,7 +45,7 @@ restricted-enchantments:
       glint: true
       mode: blacklist
       enchantments:
-        CURSE_OF_VANISHING: 0
+        VANISHING_CURSE: 0
 
 # Reduce explosion damage per item
 explosion-damage: # Applies before armour damage reduction calculation
