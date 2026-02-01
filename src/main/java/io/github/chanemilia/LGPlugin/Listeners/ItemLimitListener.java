@@ -6,6 +6,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.block.ShulkerBox;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
