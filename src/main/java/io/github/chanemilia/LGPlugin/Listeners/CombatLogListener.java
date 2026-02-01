@@ -162,6 +162,7 @@ public class CombatLogListener implements Listener {
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         handleCombatLogout(event.getPlayer());
+        restoreElytra(event.getPlayer());
     }
 
     @EventHandler
