@@ -4,12 +4,12 @@ The first public release brings a major overhaul to the configuration for better
 ## Features
 ### Combat Management
   - An efficient combat tagging system
-  - Modify explosion damage individually from different sources
-  - Drop player heads upon death
-### Restrictions & Limits
   - Apply item cooldowns in and outside of combat
       - Distinct cooldowns for in and out of combat
       - Distinct cooldowns for the same item type with different NBT data
+  - Modify explosion damage individually from different sources
+  - Drop player heads upon death (with configurable drop chances)
+### Restrictions & Limits
   - Limit the quantity of specific items a player can carry
       - Scans Bundles, Shulker Boxes, and Ender Chests (configurable) to prevent bypassing limits
       - Group items (e.g., Breeze Rods and Wind Charges) to share a single limit cap
@@ -17,6 +17,7 @@ The first public release brings a major overhaul to the configuration for better
       - Can take NBT values for very detailed restrictions
   - Whitelist or Blacklist specific enchantments on specific item types (e.g., disable Mending on Elytras or cap armour to Protection 3)
   - Completely disable specific potion effects (like Slow Falling or Weakness) from being inflicted on players.
+  - Set specific items (very configurable) players spawn with on death/first login.
 ## Configuration
 ```yaml
 # Very lightweight combat log
@@ -24,34 +25,47 @@ combatlog:
   enabled: true
   disable-elytra: true # Disable elytra in combat
   cooldowns: # Cooldowns to apply in combat
-    # Item names in this config use https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
-    # NBT matching uses substring checks against the item's full component string
-    # For NBT data, use https://minecraft.wiki/w/Data_component_format
-    # To check exact NBT, use /data get entity @s SelectedItem to see the component structure
-    # Format: "key: value" or just "value" if unique enough
+  #   NBT matching uses substring checks against the item's full component string
+  #   For NBT data, use https://minecraft.wiki/w/Data_component_format
+  #   To check exact NBT, use /data get entity @s SelectedItem to see the component structure
+  #   Format: "key: value" or just "value" if unique enough
     - material: TRIDENT
+  #   ^^ All materials in this config can either be in the form of Bukkit Enum names
+  #   https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
+  #   or Minecraft Namespaced Keys, e.g:
+  #   material: minecraft:trident
       duration: 100 # In ticks
       global: false # True = cooldowns also applies outside of combat
       nbt:
-        enchantments:'"minecraft:riptide":1'
+        enchantments:
+          RIPTIDE: 1
+      #   ^^ All enchantments in this config can either be in the form of Bukkit Enum names
+      #   https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/enchantments/Enchantment.html
+      #   or Minecraft Namespaced Keys, e.g:
+      #   "minecraft:riptide": 1
     - material: TRIDENT
       duration: 200
       global: false
       nbt:
-        enchantments: '"minecraft:riptide":2'
+        enchantments:
+          RIPTIDE: 2
     - material: TRIDENT
       duration: 300
       global: false
       nbt:
-        enchantments: '"minecraft:riptide":3'
-#   Example of other Component checks
+        enchantments:
+          RIPTIDE: 3
+#   Example of other Component checks using Map format
 #   - material: STICK
 #     duration: 100
 #     global: true
 #     nbt:
 #       custom_model_data: 12345
-#       # Note: Strings in components often use single quotes or escaped double quotes
-#       custom_name: "'{\"text\":\"Magic Stick\"}'"
+#       custom_name: "Magic Stick" # Simple string match for name works now
+#       # For complex components like food/tool that don't have special handling yet,
+#       # you can still use the specific key value from the component string:
+#       food: "{nutrition:4}"
+
     - material: ENDER_PEARL # Different cooldowns in and out of combat
       duration: 40
       global: false
@@ -71,12 +85,71 @@ combatlog:
 # Whether to drop player heads on death
 death-drops:
   enabled: true
+  drop-chance: 1 # 0 to 1, not a percentage
+
+# Give items to players on respawn or first join
+respawn-kit:
+  enabled: true
+  first-login: true
+  death: true
+  cooldown: 6000 # In ticks
+  items:
+    - slot: armor.head
+      # ^^ Just go with https://minecraft.wiki/w/Slot
+      # I mean I've added a bunch of compatibility so you can also use head or helmet or 39
+      item: LEATHER_HELMET
+      count: 1
+      nbt:
+        enchantments:
+          PROTECTION: 4
+          CURSE_OF_VANISHING: 1
+    - slot: armor.chest
+      item: LEATHER_CHESTPLATE
+      count: 1
+      nbt:
+        enchantments:
+          PROTECTION: 4
+          CURSE_OF_VANISHING: 1
+    - slot: armor.legs
+      item: IRON_LEGGINGS
+      count: 1
+      nbt:
+        enchantments:
+          PROTECTION: 4
+          CURSE_OF_VANISHING: 1
+    - slot: armor.feet
+      item: IRON_BOOTS
+      count: 1
+      nbt:
+        enchantments:
+          PROTECTION: 4
+          CURSE_OF_VANISHING: 1
+    - slot: hotbar.0
+      item: IRON_PICKAXE
+      count: 1
+      nbt:
+        enchantments:
+          EFFICIENCY: 2
+          CURSE_OF_VANISHING: 1
+    - slot: hotbar.8
+      item: RECOVERY_COMPASS
+      count: 1
+      nbt:
+        enchantments:
+          CURSE_OF_VANISHING: 1
+    - slot: weapon.offhand
+      item: STEAK
+      count: 8
 
 # Disable specific effects from being inflicted onto *players*
 disabled-potions:
   enabled: true
-  effects: # https: //hub.spigotmc.org/javadocs/bukkit/org/bukkit/potion/PotionEffectType.html
+  effects:
     WEAKNESS: 0 # Maximum allowed level
+#   ^^ All effects in this config can either be in the form of Bukkit Enum names
+#   https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/potion/PotionEffectType.html
+#   or Minecraft Namespaced Keys, e.g:
+#   "minecraft:weakness": 0
     SLOW_FALLING: 0
 
 # Disallow specific enchantments on specific items
@@ -93,14 +166,6 @@ restricted-enchantments:
       glint: true
       enchantments:
         MENDING: 0
-#   HELMET:
-#     glint: true
-#     enchantments:
-#       PROTECTION: 3
-#   GLOBAL: # Global config should be the lowest priority
-#     glint: true
-#     enchantments:
-#       VANISHING_CURSE: 0
 
 # Reduce explosion damage per item
 explosion-damage: # Applies before armour damage reduction calculation
@@ -130,6 +195,7 @@ item-limits:
       limit: 64
     - material: EXPERIENCE_BOTTLE
       limit: 128
+
   # Group limits (Weighted items)
   groups:
     wind_items:
@@ -145,19 +211,19 @@ item-limits:
         - material: POTION
           weight: 2
           nbt:
-          potion_contents: 'minecraft:strong_turtle_master'
+            potion_contents: "minecraft:strong_turtle_master"
         - material: POTION
           weight: 1
           nbt:
-          potion_contents: 'minecraft:long_turtle_master'
+            potion_contents: "minecraft:long_turtle_master"
         - material: POTION
           weight: 1
           nbt:
-          potion_contents: 'minecraft:turtle_master'
+            potion_contents: "minecraft:turtle_master"
 
   effects:
     BLINDNESS:
-      duration: 40
+      duration: 40 # In ticks
       amplifier: 3
     SLOWNESS:
       duration: 40
