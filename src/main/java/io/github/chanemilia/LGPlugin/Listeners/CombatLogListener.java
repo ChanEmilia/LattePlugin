@@ -44,6 +44,41 @@ public class CombatLogListener implements Listener {
     }
 
     @EventHandler(ignoreCancelled = true)
+    public void onInventoryOpen(InventoryOpenEvent event) {
+        if (!(event.getPlayer() instanceof Player player)) return;
+        if (!timers.containsKey(player.getUniqueId())) return;
+
+        InventoryType type = event.getInventory().getType();
+        boolean cancelled = false;
+
+        if (type == InventoryType.ENDER_CHEST) {
+            if (plugin.getConfig().getBoolean("combatlog.disable-echest", false)) {
+                cancelled = true;
+            }
+        } else if (type == InventoryType.SHULKER_BOX) {
+            if (plugin.getConfig().getBoolean("combatlog.disable-shulkers", false)) {
+                cancelled = true;
+            }
+        } else if (isGeneralContainer(type)) {
+            if (plugin.getConfig().getBoolean("combatlog.disable-containers", false)) {
+                cancelled = true;
+            }
+        }
+
+        if (cancelled) {
+            event.setCancelled(true);
+            player.sendMessage(Component.text("You cannot open this in combat!", NamedTextColor.RED));
+        }
+    }
+
+    private boolean isGeneralContainer(InventoryType type) {
+        return switch (type) {
+            case CHEST, BARREL, HOPPER, DISPENSER, DROPPER, FURNACE, BLAST_FURNACE, SMOKER, BREWING, CRAFTER -> true;
+            default -> false;
+        };
+    }
+
+    @EventHandler(ignoreCancelled = true)
     public void onPvPDamage(EntityDamageByEntityEvent event) {
         if (!(event.getEntity() instanceof Player victim)) return;
         if (!(event.getDamager() instanceof Player attacker)) return;
