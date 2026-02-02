@@ -50,6 +50,7 @@ combatlog:
 # Whether to drop player heads on death
 death-drops:
   enabled: true
+  drop-chance: 1 # 0 to 1, not a percentage
 
 # Disable specific effects from being inflicted onto *players*
 disabled-potions:

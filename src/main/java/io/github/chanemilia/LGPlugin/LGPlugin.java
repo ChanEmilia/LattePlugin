@@ -46,7 +46,7 @@ public class LGPlugin extends JavaPlugin {
         }
 
         if (getConfig().getBoolean("death-drops.enabled", true)) {
-            getServer().getPluginManager().registerEvents(new DeathListener(), this);
+            getServer().getPluginManager().registerEvents(new DeathListener(this), this);
         }
 
         if (getConfig().getBoolean("disabled-potions.enabled", true)) {
