@@ -70,7 +70,7 @@ respawn-kit:
   enabled: true
   first-login: true
   death: true
-  cooldown: 6000 # In ticks
+  cooldown: 300 # In seconds
   items:
     - slot: armor.head
       # ^^ Just go with https://minecraft.wiki/w/Slot
