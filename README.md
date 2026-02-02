@@ -33,18 +33,17 @@ combatlog:
       duration: 100 # In ticks
       global: false # True = cooldowns also applies outside of combat
       nbt:
-        # Matches: minecraft:enchantments={levels:{"minecraft:riptide":1}}
-        enchantments: "\"minecraft:riptide\":1"
+        enchantments:'"minecraft:riptide":1'
     - material: TRIDENT
       duration: 200
       global: false
       nbt:
-        enchantments: "\"minecraft:riptide\":2"
+        enchantments: '"minecraft:riptide":2'
     - material: TRIDENT
       duration: 300
       global: false
       nbt:
-        enchantments: "\"minecraft:riptide\":3"
+        enchantments: '"minecraft:riptide":3'
 #   Example of other Component checks
 #   - material: STICK
 #     duration: 100
@@ -146,15 +145,15 @@ item-limits:
         - material: POTION
           weight: 2
           nbt:
-          potion_contents: "minecraft:strong_turtle_master"
+          potion_contents: 'minecraft:strong_turtle_master'
         - material: POTION
           weight: 1
           nbt:
-          potion_contents: "minecraft:long_turtle_master"
+          potion_contents: 'minecraft:long_turtle_master'
         - material: POTION
           weight: 1
           nbt:
-          potion_contents: "minecraft:turtle_master"
+          potion_contents: 'minecraft:turtle_master'
 
   effects:
     BLINDNESS:
