@@ -148,6 +148,13 @@ restricted-enchantments:
       glint: true
       enchantments:
         MENDING: 0
+#   HELMET:
+#     glint: true
+#     enchantments:
+#       PROTECTION: 3
+    GLOBAL:
+      enchantments:
+        VANISHING_CURSE: 0
 
 # Reduce explosion damage per item
 explosion-damage: # Applies before armour damage reduction calculation
