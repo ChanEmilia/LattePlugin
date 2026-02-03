@@ -120,7 +120,7 @@ respawn-kit:
         enchantments:
           CURSE_OF_VANISHING: 1
     - slot: weapon.offhand
-      item: STEAK
+      item: COOKED_BEEF
       count: 8
 
 # Disable specific effects from being inflicted onto *players*
