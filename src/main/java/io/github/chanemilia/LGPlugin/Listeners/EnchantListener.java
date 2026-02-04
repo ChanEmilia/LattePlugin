@@ -79,10 +79,7 @@ public class EnchantListener implements Listener {
         Map<Enchantment, Integer> currentEnchants = new HashMap<>(meta.getEnchants());
 
         for (Map.Entry<Enchantment, Integer> entry : currentEnchants.entrySet()) {
-            Enchantment ench = entry.getKey();
-            int currentLevel = entry.getValue();
-
-            int cappedLevel = getCappedLevel(itemConfig, ench, currentLevel);
+            int cappedLevel = getCappedLevel(result.getType(), entry.getKey(), entry.getValue());
 
             if (cappedLevel == 0) {
                 meta.removeEnchant(entry.getKey());
