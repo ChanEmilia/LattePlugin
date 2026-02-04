@@ -85,7 +85,7 @@ public class EnchantListener implements Listener {
             int cappedLevel = getCappedLevel(itemConfig, ench, currentLevel);
 
             if (cappedLevel == 0) {
-                meta.removeEnchant(ench);
+                meta.removeEnchant(entry.getKey());
                 changed = true;
             } else if (cappedLevel < currentLevel) {
                 meta.removeEnchant(ench);
