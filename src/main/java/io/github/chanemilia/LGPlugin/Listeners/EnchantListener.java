@@ -113,7 +113,45 @@ public class EnchantListener implements Listener {
         }
     }
 
-    private ConfigurationSection getItemConfig(Material material) {
+    private int getCappedLevel(Material material, Enchantment ench, int currentLevel) {
+        ConfigurationSection itemsSection = plugin.getConfig().getConfigurationSection("restricted-enchantments.items");
+        if (itemsSection == null) return currentLevel;
+
+        int specificCap = -1;
+        int globalCap = -1;
+
+        ConfigurationSection specificConfig = getSpecificItemConfig(material);
+        if (specificConfig != null) {
+            specificCap = getLimitFromConfig(specificConfig, ench);
+        }
+
+        if (itemsSection.contains("GLOBAL")) {
+            ConfigurationSection globalConfig = itemsSection.getConfigurationSection("GLOBAL");
+            globalCap = getLimitFromConfig(globalConfig, ench);
+        }
+
+        if (specificCap != -1) return Math.min(currentLevel, specificCap);
+        if (globalCap != -1) return Math.min(currentLevel, globalCap);
+
+        return currentLevel;
+    }
+
+    private int getLimitFromConfig(ConfigurationSection section, Enchantment target) {
+        if (section == null) return -1;
+        ConfigurationSection enchants = section.getConfigurationSection("enchantments");
+        if (enchants == null) return -1;
+
+        for (String key : enchants.getKeys(false)) {
+            Enchantment resolved = ItemMatcher.resolveEnchantment(key);
+
+            if (resolved != null && resolved.equals(target)) {
+                return enchants.getInt(key);
+            }
+        }
+        return -1;
+    }
+
+    private ConfigurationSection getSpecificItemConfig(Material material) {
         ConfigurationSection itemsSection = plugin.getConfig().getConfigurationSection("restricted-enchantments.items");
         if (itemsSection == null) return null;
 
