@@ -94,15 +94,20 @@ public class EnchantListener implements Listener {
             }
         }
 
-        boolean showGlint = itemConfig.getBoolean("glint", true);
-        if (!showGlint) {
-            if (!meta.hasItemFlag(ItemFlag.HIDE_ENCHANTS)) {
-                meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-                changed = true;
-            }
-        } else {
-            if (meta.hasItemFlag(ItemFlag.HIDE_ENCHANTS)) {
-                meta.removeItemFlags(ItemFlag.HIDE_ENCHANTS);
+        ConfigurationSection itemConfig = getSpecificItemConfig(result.getType());
+
+        if (itemConfig != null && meta.hasEnchants()) {
+            boolean showGlint = itemConfig.getBoolean("glint", true);
+
+            Boolean currentOverride = meta.getEnchantmentGlintOverride();
+
+            if (!showGlint) {
+                if (currentOverride) {
+                    meta.setEnchantmentGlintOverride(false);
+                    changed = true;
+                }
+            } else {
+                meta.setEnchantmentGlintOverride(null);
                 changed = true;
             }
         }
