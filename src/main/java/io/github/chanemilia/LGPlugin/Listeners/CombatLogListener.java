@@ -195,6 +195,20 @@ public class CombatLogListener implements Listener {
     }
 
     @EventHandler(ignoreCancelled = true)
+    public void onPvPDamage(EntityDamageByEntityEvent event) {
+        if (!(event.getEntity() instanceof Player victim)) return;
+        if (!(event.getDamager() instanceof Player attacker)) return;
+
+        ItemStack weapon = attacker.getInventory().getItemInMainHand();
+        if (weapon.getType() != Material.AIR) {
+            tryApplyCooldown(attacker, weapon);
+        }
+
+        if (event.getFinalDamage() <= MIN_DAMAGE) return;
+        tagPlayers(victim, attacker);
+    }
+
+    @EventHandler(ignoreCancelled = true)
     public void onGlide(EntityToggleGlideEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
 
