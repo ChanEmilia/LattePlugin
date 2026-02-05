@@ -87,7 +87,10 @@ public class CombatLogListener implements Listener {
         ItemStack item = event.getItem();
         if (item == null || item.getType() == Material.AIR) return;
 
-        tagPlayers(victim, attacker);
+        if (isChargeable(item.getType())) return;
+
+        final ItemStack finalItem = item.clone();
+        Bukkit.getScheduler().runTask(plugin, () -> tryApplyCooldown(event.getPlayer(), finalItem));
     }
 
     @EventHandler(ignoreCancelled = true)
