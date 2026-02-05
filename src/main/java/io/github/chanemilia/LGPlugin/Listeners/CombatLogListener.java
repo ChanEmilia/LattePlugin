@@ -199,7 +199,9 @@ public class CombatLogListener implements Listener {
 
         ItemStack weapon = attacker.getInventory().getItemInMainHand();
         if (weapon.getType() != Material.AIR) {
-            tryApplyCooldown(attacker, weapon);
+            if (isWeapon(weapon.getType())) {
+                tryApplyCooldown(attacker, weapon);
+            }
         }
 
         if (event.getFinalDamage() <= MIN_DAMAGE) return;
