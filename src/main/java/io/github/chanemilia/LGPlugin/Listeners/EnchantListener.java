@@ -58,8 +58,8 @@ public class EnchantListener implements Listener {
         if (!itemConfig.getBoolean("glint", true)) {
             ItemMeta meta = item.getItemMeta();
             if (meta != null) {
-                meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-                item.setItemMeta(meta);
+                meta.setEnchantmentGlintOverride(showGlint ? null : false);
+                event.getItem().setItemMeta(meta);
             }
         }
     }
