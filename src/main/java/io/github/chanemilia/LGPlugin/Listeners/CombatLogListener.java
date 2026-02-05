@@ -99,10 +99,23 @@ public class CombatLogListener implements Listener {
 
         ItemStack item = player.getInventory().getItemInMainHand();
 
-        if (!isProjectileItem(item.getType())) {
-            ItemStack off = player.getInventory().getItemInOffHand();
-            if (isProjectileItem(off.getType())) {
-                item = off;
+        if (projectile instanceof EnderPearl) item = new ItemStack(Material.ENDER_PEARL);
+        else if (projectile instanceof Snowball) item = new ItemStack(Material.SNOWBALL);
+        else if (projectile instanceof Egg) item = new ItemStack(Material.EGG);
+        else if (projectile instanceof Trident trident) {
+            item = trident.getItemStack();
+        }
+        else if (projectile instanceof ThrownPotion potion) item = potion.getItem();
+        else if (projectile.getType().name().equals("WIND_CHARGE")) {
+            Material windMat = ItemMatcher.resolveMaterial("WIND_CHARGE");
+            if (windMat != null) item = new ItemStack(windMat);
+        }
+
+        if (item == null) {
+            item = player.getInventory().getItemInMainHand();
+            if (!isProjectileItem(item.getType())) {
+                item = player.getInventory().getItemInOffHand();
+                if (!isProjectileItem(item.getType())) item = null;
             }
         }
 
