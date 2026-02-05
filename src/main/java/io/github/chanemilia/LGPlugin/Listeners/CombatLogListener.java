@@ -80,11 +80,12 @@ public class CombatLogListener implements Listener {
         };
     }
 
-    @EventHandler(ignoreCancelled = true)
-    public void onPvPDamage(EntityDamageByEntityEvent event) {
-        if (!(event.getEntity() instanceof Player victim)) return;
-        if (!(event.getDamager() instanceof Player attacker)) return;
-        if (event.getFinalDamage() <= MIN_DAMAGE) return;
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onInteract(PlayerInteractEvent event) {
+        if (event.useItemInHand() == org.bukkit.event.Event.Result.DENY) return;
+
+        ItemStack item = event.getItem();
+        if (item == null || item.getType() == Material.AIR) return;
 
         tagPlayers(victim, attacker);
     }
