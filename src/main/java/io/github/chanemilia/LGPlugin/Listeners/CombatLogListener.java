@@ -285,6 +285,11 @@ public class CombatLogListener implements Listener {
         }
     }
 
+    @EventHandler(ignoreCancelled = true)
+    public void onDrop(PlayerDropItemEvent event) {
+        restoreItemStack(event.getItemDrop().getItemStack());
+    }
+
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         restoreElytra(event.getPlayer());
