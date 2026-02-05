@@ -7,8 +7,9 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityToggleGlideEvent;
@@ -33,7 +34,6 @@ public class CombatLogListener implements Listener {
 
     private final LGPlugin plugin;
     private final NamespacedKey durabilityKey;
-
     private static final double MIN_DAMAGE = 1.0;
 
     private final Map<UUID, UUID> combatPairs = new HashMap<>();
@@ -54,17 +54,11 @@ public class CombatLogListener implements Listener {
         boolean cancelled = false;
 
         if (type == InventoryType.ENDER_CHEST) {
-            if (plugin.getConfig().getBoolean("combatlog.disable-echest", false)) {
-                cancelled = true;
-            }
+            cancelled = plugin.getConfig().getBoolean("combatlog.disable-echest", false);
         } else if (type == InventoryType.SHULKER_BOX) {
-            if (plugin.getConfig().getBoolean("combatlog.disable-shulkers", false)) {
-                cancelled = true;
-            }
+            cancelled = plugin.getConfig().getBoolean("combatlog.disable-shulkers", false);
         } else if (isGeneralContainer(type)) {
-            if (plugin.getConfig().getBoolean("combatlog.disable-containers", false)) {
-                cancelled = true;
-            }
+            cancelled = plugin.getConfig().getBoolean("combatlog.disable-containers", false);
         }
 
         if (cancelled) {
@@ -97,7 +91,8 @@ public class CombatLogListener implements Listener {
     public void onProjectileLaunch(ProjectileLaunchEvent event) {
         if (!(event.getEntity().getShooter() instanceof Player player)) return;
 
-        ItemStack item = player.getInventory().getItemInMainHand();
+        Projectile projectile = event.getEntity();
+        ItemStack item = null;
 
         if (projectile instanceof EnderPearl) item = new ItemStack(Material.ENDER_PEARL);
         else if (projectile instanceof Snowball) item = new ItemStack(Material.SNOWBALL);
@@ -119,12 +114,10 @@ public class CombatLogListener implements Listener {
             }
         }
 
-        tryApplyCooldown(player, item);
-    }
-
-    @EventHandler(ignoreCancelled = true)
-    public void onRiptide(PlayerRiptideEvent event) {
-        tryApplyCooldown(event.getPlayer(), event.getItem());
+        if (item != null) {
+            final ItemStack finalItem = item;
+            Bukkit.getScheduler().runTask(plugin, () -> tryApplyCooldown(player, finalItem));
+        }
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -159,17 +152,19 @@ public class CombatLogListener implements Listener {
     private void tryApplyCooldown(Player player, ItemStack item) {
         if (item == null || item.getType() == Material.AIR) return;
 
-        List<Map<?, ?>> rules = plugin.getConfig().getMapList("combatlog.cooldowns");
         Material mat = item.getType();
+        List<Map<?, ?>> rules = plugin.getConfig().getMapList("combatlog.cooldowns");
         int maxDuration = -1;
 
         for (Map<?, ?> rule : rules) {
-            String matName = (String) rule.get("material");
-            if (matName == null || !matName.equals(mat.name())) continue;
+            String configMatName = (String) rule.get("material");
+            if (configMatName == null) continue;
+
+            Material ruleMat = ItemMatcher.resolveMaterial(configMatName);
+            if (ruleMat == null || ruleMat != mat) continue;
 
             Object globalObj = rule.get("global");
             boolean global = (globalObj instanceof Boolean) ? (Boolean) globalObj : false;
-
             boolean inCombat = timers.containsKey(player.getUniqueId());
 
             if (!global && !inCombat) continue;
@@ -211,7 +206,6 @@ public class CombatLogListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onGlide(EntityToggleGlideEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
-
         if (event.isGliding() && timers.containsKey(player.getUniqueId())) {
             if (plugin.getConfig().getBoolean("combatlog.disable-elytra", false)) {
                 event.setCancelled(true);
@@ -228,7 +222,6 @@ public class CombatLogListener implements Listener {
         combatPairs.put(player, opponent);
         int combatTime = plugin.getConfig().getInt("combatlog.timer", 30);
         timers.put(player, combatTime);
-
         Player p = Bukkit.getPlayer(player);
         if (p != null) {
             if (plugin.getConfig().getBoolean("combatlog.disable-elytra", false)) {
@@ -236,36 +229,25 @@ public class CombatLogListener implements Listener {
                 breakElytra(p);
             }
         }
-
-        if (tasks.containsKey(player)) {
-            tasks.get(player).cancel();
-        }
+        if (tasks.containsKey(player)) tasks.get(player).cancel();
 
         BukkitRunnable task = new BukkitRunnable() {
             @Override
             public void run() {
                 int time = timers.getOrDefault(player, 0);
                 Player p = Bukkit.getPlayer(player);
-
                 if (p == null || time <= 0) {
                     clearCombat(player);
                     cancel();
                     return;
                 }
-
-                p.sendActionBar(
-                        Component.text("Combat: ", NamedTextColor.RED)
-                                .append(Component.text(time + "s", NamedTextColor.RED))
-                );
-
-                if (time % 20 == 0 && plugin.getConfig().getBoolean("combatlog.disable-elytra", false)) {
+                p.sendActionBar(Component.text("Combat: ", NamedTextColor.RED).append(Component.text(time + "s", NamedTextColor.RED)));
+                if (plugin.getConfig().getBoolean("combatlog.disable-elytra", false)) {
                     breakElytra(p);
                 }
-
                 timers.put(player, time - 1);
             }
         };
-
         task.runTaskTimer(plugin, 0L, 20L);
         tasks.put(player, task);
     }
@@ -274,11 +256,8 @@ public class CombatLogListener implements Listener {
     public void onDeath(PlayerDeathEvent event) {
         UUID dead = event.getEntity().getUniqueId();
         UUID opponent = combatPairs.get(dead);
-
         clearCombat(dead);
-        if (opponent != null) {
-            clearCombat(opponent);
-        }
+        if (opponent != null) clearCombat(opponent);
 
         for (ItemStack drop : event.getDrops()) {
             restoreItemStack(drop);
@@ -291,9 +270,7 @@ public class CombatLogListener implements Listener {
     }
 
     @EventHandler
-    public void onJoin(PlayerJoinEvent event) {
-        restoreElytra(event.getPlayer());
-    }
+    public void onJoin(PlayerJoinEvent event) { restoreElytra(event.getPlayer()); }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
@@ -310,34 +287,23 @@ public class CombatLogListener implements Listener {
     private void handleCombatLogout(Player player) {
         UUID uuid = player.getUniqueId();
         if (!timers.containsKey(uuid)) return;
-
         UUID opponentUUID = combatPairs.get(uuid);
         Player opponent = opponentUUID != null ? Bukkit.getPlayer(opponentUUID) : null;
-
         String playerName = player.getName();
         String opponentName = opponent != null ? opponent.getName() : "someone";
         String message = playerName + " logged out of combat while fighting " + opponentName + " and died";
-
         Bukkit.broadcast(Component.text(message, NamedTextColor.RED));
-
         player.setHealth(0.0);
-
         clearCombat(uuid);
-        if (opponentUUID != null) {
-            clearCombat(opponentUUID);
-        }
+        if (opponentUUID != null) clearCombat(opponentUUID);
     }
 
     public void removeAllTags() {
-        for (BukkitRunnable task : tasks.values()) {
-            task.cancel();
-        }
-
+        for (BukkitRunnable task : tasks.values()) task.cancel();
         for (UUID uuid : timers.keySet()) {
             Player p = Bukkit.getPlayer(uuid);
             if (p != null) restoreElytra(p);
         }
-
         tasks.clear();
         timers.clear();
         combatPairs.clear();
@@ -346,10 +312,8 @@ public class CombatLogListener implements Listener {
     private void clearCombat(UUID player) {
         timers.remove(player);
         combatPairs.remove(player);
-
         Player p = Bukkit.getPlayer(player);
         if (p != null) restoreElytra(p);
-
         if (tasks.containsKey(player)) {
             tasks.get(player).cancel();
             tasks.remove(player);
@@ -359,16 +323,12 @@ public class CombatLogListener implements Listener {
     private void breakElytra(Player player) {
         for (ItemStack item : player.getInventory().getContents()) {
             if (item == null || item.getType() != Material.ELYTRA) continue;
-
             ItemMeta meta = item.getItemMeta();
             if (!(meta instanceof Damageable damageable)) continue;
-
             PersistentDataContainer container = meta.getPersistentDataContainer();
-
             if (!container.has(durabilityKey, PersistentDataType.INTEGER)) {
                 container.set(durabilityKey, PersistentDataType.INTEGER, damageable.getDamage());
             }
-
             if (damageable.getDamage() < 431) {
                 damageable.setDamage(431);
                 item.setItemMeta(meta);
@@ -384,10 +344,8 @@ public class CombatLogListener implements Listener {
 
     private void restoreItemStack(ItemStack item) {
         if (item == null || item.getType() != Material.ELYTRA) return;
-
         ItemMeta meta = item.getItemMeta();
         if (!(meta instanceof Damageable damageable)) return;
-
         PersistentDataContainer container = meta.getPersistentDataContainer();
         if (container.has(durabilityKey, PersistentDataType.INTEGER)) {
             Integer originalDamage = container.get(durabilityKey, PersistentDataType.INTEGER);
