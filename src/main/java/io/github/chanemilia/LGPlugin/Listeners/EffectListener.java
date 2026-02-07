@@ -35,7 +35,7 @@ public class EffectListener implements Listener {
             PotionEffectType configuredType = getPotionEffectType(effectName);
 
             if (configuredType != null && configuredType.equals(type)) {
-                int maxAmplifier = effectsConfig.getInt(effectName);
+                int maxAmplifier = effectsConfig.getInt(effectName) + 1;
 
                 if (newEffect.getAmplifier() > maxAmplifier) {
                     event.setCancelled(true);
