@@ -1,22 +1,17 @@
 package io.github.chanemilia.LGPlugin.Listeners;
 
 import io.github.chanemilia.LGPlugin.LGPlugin;
-import io.github.chanemilia.LGPlugin.Utils.ItemMatcher;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.attribute.Attribute;
-import org.bukkit.attribute.AttributeModifier;
-import org.bukkit.entity.*;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.*;
@@ -27,9 +22,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -46,6 +39,10 @@ public class CombatLogListener implements Listener {
     public CombatLogListener(LGPlugin plugin) {
         this.plugin = plugin;
         this.durabilityKey = new NamespacedKey(plugin, "original_elytra_durability");
+    }
+
+    public boolean isInCombat(UUID playerUUID) {
+        return timers.containsKey(playerUUID);
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -77,147 +74,14 @@ public class CombatLogListener implements Listener {
         };
     }
 
-    @EventHandler(priority = EventPriority.HIGH)
-    public void onInteract(PlayerInteractEvent event) {
-        if (event.useItemInHand() == org.bukkit.event.Event.Result.DENY) return;
-
-        ItemStack item = event.getItem();
-        if (item == null || item.getType() == Material.AIR) return;
-
-        if (isChargeable(item.getType())) return;
-
-        final ItemStack finalItem = item.clone();
-        Bukkit.getScheduler().runTask(plugin, () -> tryApplyCooldown(event.getPlayer(), finalItem));
-    }
-
-    @EventHandler(ignoreCancelled = true)
-    public void onProjectileLaunch(ProjectileLaunchEvent event) {
-        if (!(event.getEntity().getShooter() instanceof Player player)) return;
-
-        Projectile projectile = event.getEntity();
-        ItemStack item = null;
-
-        if (projectile instanceof EnderPearl) item = new ItemStack(Material.ENDER_PEARL);
-        else if (projectile instanceof Snowball) item = new ItemStack(Material.SNOWBALL);
-        else if (projectile instanceof Egg) item = new ItemStack(Material.EGG);
-        else if (projectile instanceof Trident trident) {
-            item = trident.getItemStack();
-        }
-        else if (projectile instanceof ThrownPotion potion) item = potion.getItem();
-        else if (projectile.getType().name().equals("WIND_CHARGE")) {
-            Material windMat = ItemMatcher.resolveMaterial("WIND_CHARGE");
-            if (windMat != null) item = new ItemStack(windMat);
-        }
-
-        if (item == null) {
-            item = player.getInventory().getItemInMainHand();
-            if (isProjectileItem(item.getType())) {
-                item = player.getInventory().getItemInOffHand();
-                if (isProjectileItem(item.getType())) item = null;
-            }
-        }
-
-        if (item != null) {
-            final ItemStack finalItem = item;
-            Bukkit.getScheduler().runTask(plugin, () -> tryApplyCooldown(player, finalItem));
-        }
-    }
-
-    @EventHandler(ignoreCancelled = true)
-    public void onConsume(PlayerItemConsumeEvent event) {
-        final ItemStack item = event.getItem().clone();
-        Bukkit.getScheduler().runTask(plugin, () -> tryApplyCooldown(event.getPlayer(), item));
-    }
-
-    @EventHandler(ignoreCancelled = true)
-    public void onRiptide(PlayerRiptideEvent event) {
-        final ItemStack item = event.getItem().clone();
-        Bukkit.getScheduler().runTask(plugin, () -> tryApplyCooldown(event.getPlayer(), item));
-    }
-
-    private boolean isChargeable(Material mat) {
-        return mat.isEdible() ||
-                mat == Material.BOW ||
-                mat == Material.CROSSBOW ||
-                mat == Material.SHIELD ||
-                mat == Material.TRIDENT ||
-                mat == Material.GOAT_HORN ||
-                mat == Material.SPYGLASS;
-    }
-
-    private boolean isProjectileItem(Material mat) {
-        String name = mat.name();
-        return !name.contains("PEARL") && !name.contains("CHARGE") &&
-                !name.contains("TRIDENT") && !name.contains("SNOWBALL") &&
-                !name.contains("EGG") && !name.contains("POTION");
-    }
-
-    private void tryApplyCooldown(Player player, ItemStack item) {
-        if (item == null || item.getType() == Material.AIR) return;
-
-        Material mat = item.getType();
-
-        if (player.hasCooldown(mat)) return;
-
-        List<Map<?, ?>> rules = plugin.getConfig().getMapList("combatlog.cooldowns");
-        int maxDuration = -1;
-
-        for (Map<?, ?> rule : rules) {
-            String configMatName = (String) rule.get("material");
-            if (configMatName == null) continue;
-
-            Material ruleMat = ItemMatcher.resolveMaterial(configMatName);
-            if (ruleMat == null || ruleMat != mat) continue;
-
-            Object globalObj = rule.get("global");
-            boolean global = (globalObj instanceof Boolean) ? (Boolean) globalObj : false;
-            boolean inCombat = timers.containsKey(player.getUniqueId());
-
-            if (!global && !inCombat) continue;
-
-            if (rule.containsKey("nbt")) {
-                Map<?, ?> nbtRules = (Map<?, ?>) rule.get("nbt");
-                if (!ItemMatcher.checkNbt(item, nbtRules)) continue;
-            }
-
-            Object durationObj = rule.get("duration");
-            int duration = (durationObj instanceof Integer) ? (Integer) durationObj : 0;
-
-            if (duration > maxDuration) {
-                maxDuration = duration;
-            }
-        }
-
-        if (maxDuration > 0) {
-            if (!player.hasCooldown(mat) || player.getCooldown(mat) < maxDuration) {
-                player.setCooldown(mat, maxDuration);
-            }
-        }
-    }
-
     @EventHandler(ignoreCancelled = true)
     public void onPvPDamage(EntityDamageByEntityEvent event) {
         if (!(event.getEntity() instanceof Player victim)) return;
         if (!(event.getDamager() instanceof Player attacker)) return;
 
-        ItemStack weapon = attacker.getInventory().getItemInMainHand();
-        if (weapon.getType().isAir()) return;
-
-        ItemMeta meta = weapon.getItemMeta();
-        if (meta != null && meta.hasAttributeModifiers()) {
-
-            Collection<AttributeModifier> modifiers =
-                    meta.getAttributeModifiers(Attribute.ATTACK_DAMAGE);
-
-            if (modifiers != null && !modifiers.isEmpty()) {
-                tryApplyCooldown(attacker, weapon);
-            }
-        }
-
         if (event.getFinalDamage() <= MIN_DAMAGE) return;
         tagPlayers(victim, attacker);
     }
-
 
     @EventHandler(ignoreCancelled = true)
     public void onGlide(EntityToggleGlideEvent event) {
