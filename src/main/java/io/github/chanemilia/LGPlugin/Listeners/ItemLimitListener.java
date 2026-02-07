@@ -91,7 +91,6 @@ public class ItemLimitListener implements Listener {
                 for (Map<?, ?> itemMap : groupItems) {
                     String matName = (String) itemMap.get("material");
 
-                    // Fix: Manual check for weight as well
                     Object weightObj = itemMap.get("weight");
                     int weight = (weightObj instanceof Number) ? ((Number) weightObj).intValue() : 1;
 
