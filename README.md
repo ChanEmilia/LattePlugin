@@ -236,7 +236,6 @@ item-limits:
     turtle_master:
       limit: 2
       items:
-        #   Sorry there isn't a very good way to intuitively implement inclusive item formatting here
         - material: "minecraft:potion"
           weight: 2
           nbt:
