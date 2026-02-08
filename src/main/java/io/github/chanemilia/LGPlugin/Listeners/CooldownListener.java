@@ -2,6 +2,7 @@ package io.github.chanemilia.LGPlugin.Listeners;
 
 import io.github.chanemilia.LGPlugin.LGPlugin;
 import io.github.chanemilia.LGPlugin.Utils.ItemMatcher;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -31,7 +32,8 @@ public class CooldownListener implements Listener {
     // Consumables, apply the cooldown after the item is consumed
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onConsume(PlayerItemConsumeEvent event) {
-        checkAndApplyCooldown(event.getPlayer(), event.getItem().clone());
+        final ItemStack item = event.getItem().clone();
+        Bukkit.getScheduler().runTask(plugin, () -> checkAndApplyCooldown(event.getPlayer(), item));
     }
 
     // Projectiles, apply after the item is used
@@ -48,32 +50,33 @@ public class CooldownListener implements Listener {
             case EnderPearl enderPearl -> itemStack = new ItemStack(Material.ENDER_PEARL);
             case Snowball snowball -> itemStack = new ItemStack(Material.SNOWBALL);
             case Egg egg -> itemStack = new ItemStack(Material.EGG);
-            case WindCharge windCharge -> {
-                Material mat = ItemMatcher.resolveMaterial("WIND_CHARGE"); // idk
-
-                if (mat != null) itemStack = new ItemStack(mat);
-            }
+            case WindCharge windCharge -> itemStack = new ItemStack(Material.WIND_CHARGE);
             case Firework firework -> itemStack = new ItemStack(Material.FIREWORK_ROCKET);
             default -> {
             }
         }
 
         if (itemStack != null) {
-            checkAndApplyCooldown(player, itemStack);
+            final ItemStack finalItem = itemStack;
+            Bukkit.getScheduler().runTask(plugin, () -> checkAndApplyCooldown(player, finalItem));
         }
     }
 
     // Riptide specifically
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onRiptide(PlayerRiptideEvent event) {
-        checkAndApplyCooldown(event.getPlayer(), event.getItem());
+        final ItemStack item = event.getItem().clone();
+        Bukkit.getScheduler().runTask(plugin, () -> checkAndApplyCooldown(event.getPlayer(), item));
     }
 
     // Chargeable weapons, apply the cooldown once the item is finished charging and used
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBowShoot(EntityShootBowEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
-        checkAndApplyCooldown(player, event.getBow());
+        final ItemStack bow = event.getBow() != null ? event.getBow().clone() : null;
+        if (bow != null) {
+            Bukkit.getScheduler().runTask(plugin, () -> checkAndApplyCooldown(player, bow));
+        }
     }
 
     // Utility Items
@@ -87,14 +90,16 @@ public class CooldownListener implements Listener {
 
         // Filter for specific utility items to avoid conflict with other events
         if (isUtilityItem(type)) {
-            checkAndApplyCooldown(event.getPlayer(), item);
+            final ItemStack finalItem = item.clone();
+            Bukkit.getScheduler().runTask(plugin, () -> checkAndApplyCooldown(event.getPlayer(), finalItem));
         }
     }
 
     // Blocks, apply the cooldown after the item is consumed
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlace(BlockPlaceEvent event) {
-        checkAndApplyCooldown(event.getPlayer(), event.getItemInHand().clone());
+        final ItemStack item = event.getItemInHand().clone();
+        Bukkit.getScheduler().runTask(plugin, () -> checkAndApplyCooldown(event.getPlayer(), item));
     }
 
     // Weapons, apply cooldown after hitting any entity
@@ -105,7 +110,8 @@ public class CooldownListener implements Listener {
         ItemStack weapon = player.getInventory().getItemInMainHand();
         if (weapon.getType() == Material.AIR) return;
 
-        checkAndApplyCooldown(player, weapon);
+        final ItemStack finalWeapon = weapon.clone();
+        Bukkit.getScheduler().runTask(plugin, () -> checkAndApplyCooldown(player, finalWeapon));
     }
 
     // Shield, apply cooldown after it is disabled
@@ -119,10 +125,14 @@ public class CooldownListener implements Listener {
         ItemStack activeItem = victim.getActiveItem(); // The item they are blocking with
         if (activeItem.getType() != Material.SHIELD) return;
 
+        final ItemStack shield = activeItem.clone();
+
         // Apply cooldown after shield is disabled
-        if (victim.getCooldown(Material.SHIELD) > 0) {
-            checkAndApplyCooldown(victim, activeItem);
-        }
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            if (victim.getCooldown(Material.SHIELD) > 0) {
+                checkAndApplyCooldown(victim, shield);
+            }
+        });
     }
 
     // Totem of Undying, apply cooldown after one is used and disable its functionality
@@ -150,7 +160,7 @@ public class CooldownListener implements Listener {
 
         if (!event.isCancelled()) {
             ItemStack finalTotem = totemStack.clone();
-            checkAndApplyCooldown(player, finalTotem);
+            Bukkit.getScheduler().runTask(plugin, () -> checkAndApplyCooldown(player, finalTotem));
         }
     }
 
