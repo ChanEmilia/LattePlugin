@@ -46,18 +46,14 @@ public class ItemMatcher {
         if (enchantment == null || configKey == null) return false;
         String cleanConfig = cleanKey(configKey);
         String enchKey = enchantment.getKey().getKey().toLowerCase();
-        // Bukkit Enchantment names are often deprecated or weird, but we check name() just in case
-        String enchName = enchantment.getName().toLowerCase();
 
         if (enchKey.equals(cleanConfig)) return true;
-        if (enchName.equals(cleanConfig)) return true;
-
         if (enchKey.contains(cleanConfig)) return true;
-        if (enchName.contains(cleanConfig)) return true;
 
         return false;
     }
 
+    @SuppressWarnings("deprecation")
     public static boolean matchesPotion(PotionEffectType type, String configKey) {
         if (type == null || configKey == null) return false;
         String cleanConfig = cleanKey(configKey);
