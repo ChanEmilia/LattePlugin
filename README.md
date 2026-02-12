@@ -40,60 +40,61 @@ combatlog:
   disable-shulkers: false
   disable-echest: false
   disable-elytra: true # Disable elytra in combat
-  cooldowns: # Cooldowns to apply in combat
-    #   NBT matching uses substring checks against the item's full component string
-    #   For NBT data, use https://minecraft.wiki/w/Data_component_format
-    #   To check exact NBT, use /data get entity @s SelectedItem to see the component structure
-    #   Format: "key: value" or just "value" if unique enough
-    - material: TRIDENT
-      #   ^^ All materials in this config can either be in the form of Bukkit Enum names
-      #   https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
-      #   or Minecraft Namespaced Keys, e.g:
-      #   material: minecraft:trident
-      duration: 100 # In ticks
-      global: false # True = cooldowns also applies outside of combat
-      nbt:
-        enchantments:
-          RIPTIDE: 1
-      #   ^^ All enchantments in this config can either be in the form of Bukkit Enum names
-      #   https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/enchantments/Enchantment.html
-      #   or Minecraft Namespaced Keys, e.g:
-      #   "minecraft:riptide": 1
-    - material: TRIDENT
-      duration: 200
-      global: false
-      nbt:
-        enchantments:
-          RIPTIDE: 2
-    - material: TRIDENT
-      duration: 300
-      global: false
-      nbt:
-        enchantments:
-          RIPTIDE: 3
-    #   Example of other Component checks using Map format
-    #   - material: STICK
-    #     duration: 100
-    #     global: true
-    #     nbt:
-    #       custom_model_data: 12345
-    #       custom_name: "Magic Stick" # Simple string match for name works now
-    #       # For complex components like food/tool that don't have special handling yet,
-    #       # you can still use the specific key value from the component string:
-    #       food: "{nutrition:4}"
 
-    - material: ENDER_PEARL # Different cooldowns in and out of combat
-      duration: 50
-      global: true
-    - material: ENDER_PEARL
-      duration: 40
-      global: true
-    - material: CHORUS_FRUIT
-      duration: 200
-      global: false
-    - material: WIND_CHARGE
-      duration: 40
-      global: false
+cooldowns: # Item cooldowns
+  #   NBT matching uses substring checks against the item's full component string
+  #   For NBT data, use https://minecraft.wiki/w/Data_component_format
+  #   To check exact NBT, use /data get entity @s SelectedItem to see the component structure
+  #   Format: "key: value" or just "value" if unique enough
+  - material: "minecraft:trident"
+    #   ^^ All materials in this config can either be in the form of Minecraft Namespaced Keys
+    #   or Bukkit enum names (https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html), e.g:
+    #   material: TRIDENT
+    duration: 100 # In ticks
+    global: false # True = cooldowns also applies outside of combat
+    nbt:
+      enchantments:
+        "minecraft:riptide": 1
+    #   ^^ All materials in this config can either be in the form of Minecraft Namespaced Keys
+    #   or Bukkit enum names (https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/enchantments/Enchantment.html), e.g:
+    #   RIPTIDE: 1
+  - material: "minecraft:trident"
+    duration: 200
+    global: false
+    nbt:
+      enchantments:
+        "minecraft:riptide": 2
+  - material: "minecraft:trident"
+    duration: 300
+    global: false
+    nbt:
+      enchantments:
+        "minecraft:riptide": 3
+  #   Example of other Component checks using Map format
+  #   - material: "minecraft:stick"
+  #     duration: 100
+  #     global: true
+  #     nbt:
+  #       custom_model_data: 12345
+  #       custom_name: "Magic Stick" # Simple string match for name works now
+  #       # For complex components like food/tool that don't have special handling yet,
+  #       # you can still use the specific key value from the component string:
+  #       food: "{nutrition:4}"
+  - material: "minecraft:ender_pearl" # Different cooldowns in and out of combat
+    duration: 50
+    global: false
+  - material: "minecraft:ender_pearl"
+    duration: 40
+    global: true
+  - material: "minecraft:chorus_fruit"
+    duration: 200
+    global: false
+  - material: "minecraft:wind_charge"
+    duration: 40
+    global: false
+  - material: "minecraft:totem_of_undying"
+    duration: 600
+    global: false
 
 # Whether to drop player heads on death
 death-drops:
@@ -110,88 +111,87 @@ respawn-kit:
     - slot: armor.head
       # ^^ Just go with https://minecraft.wiki/w/Slot
       # I mean I've added a bunch of compatibility so you can also use head or helmet or 39
-      item: LEATHER_HELMET
+      item: "minecraft:leather_helmet"
       count: 1
       nbt:
         enchantments:
           PROTECTION: 4
-          VANISHING_CURSE: 1
+          "minecraft:vanishing_curse": 1
     - slot: armor.chest
-      item: LEATHER_CHESTPLATE
+      item: "minecraft:leather_chestplate"
       count: 1
       nbt:
         enchantments:
-          PROTECTION: 4
-          VANISHING_CURSE: 1
+          "minecraft:protection": 4
+          "minecraft:vanishing_curse": 1
     - slot: armor.legs
-      item: IRON_LEGGINGS
+      item: "minecraft:iron_leggings"
       count: 1
       nbt:
         enchantments:
-          PROTECTION: 4
-          VANISHING_CURSE: 1
+          "minecraft:protection": 4
+          "minecraft:vanishing_curse": 1
     - slot: armor.feet
-      item: IRON_BOOTS
+      item: "minecraft:iron_boots"
       count: 1
       nbt:
         enchantments:
-          PROTECTION: 4
-          VANISHING_CURSE: 1
+          "minecraft:protection": 4
+          "minecraft:vanishing_curse": 1
     - slot: hotbar.0
-      item: IRON_PICKAXE
+      item: "minecraft:iron_pickaxe"
       count: 1
       nbt:
         enchantments:
-          EFFICIENCY: 2
-          VANISHING_CURSE: 1
+          "minecraft:efficiency": 2
+          "minecraft:vanishing_curse": 1
     - slot: hotbar.8
-      item: RECOVERY_COMPASS
+      item: "minecraft:recovery_compass"
       count: 1
       nbt:
         enchantments:
-          VANISHING_CURSE: 1
+          "minecraft:vanishing_curse": 1
     - slot: weapon.offhand
-      item: COOKED_BEEF
+      item: "minecraft:cooked_beef"
       count: 8
 
 # Disable specific effects from being inflicted onto *players*
 disabled-potions:
   enabled: true
   effects:
-    WEAKNESS: 0 # Maximum allowed level
-    #   ^^ All effects in this config can either be in the form of Bukkit Enum names
-    #   https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/potion/PotionEffectType.html
-    #   or Minecraft Namespaced Keys, e.g:
-    #   "minecraft:weakness": 0
-    SLOW_FALLING: 0
+    "minecraft:weakness": -1 # Maximum allowed level
+    #   ^^ All effects in this config can either be in the form of Minecraft Namespaced Keys
+    #   or Bukkit Enum names (https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/potion/PotionEffectType.html), e.g:
+    #   WEAKNESS: -1
+    "minecraft:slow_falling": -1
 
 # Disallow specific enchantments on specific items
 restricted-enchantments:
   enabled: true
   items: # Priority goes down the list
-    MACE: # Item names are inclusive, ie HELMET will apply to every item with helmet in its name
+    "minecraft:mace": # Item names are inclusive, ie HELMET will apply to every item with helmet in its name
       glint: false # Whether or not to show the enchantment glint
       enchantments:
-        DENSITY: 0 # Maximum allowed level
-        BREACH: 0
-        WIND_BURST: 0
-    ELYTRA:
+        "minecraft:density": 0 # Maximum allowed level
+        "minecraft:breach": 0
+        "minecraft:wind_burst": 0
+    "minecraft:elytra":
       glint: true
       enchantments:
-        MENDING: 0
+        "minecraft:mending": 0
     #   HELMET:
     #     glint: true
     #     enchantments:
-    #       PROTECTION: 3
+    #       "minecraft:protection": 3
     GLOBAL:
       enchantments:
-        VANISHING_CURSE: 0
+        "minecraft:vanishing_curse": 0
 
 restricted-crafting:
   enabled: true
   items:
-    - material: SPEAR # Also inclusive
-    - material: TIPPED_ARROW
+    - material: "spear" # Also inclusive
+    - material: "minecraft:tipped_arrow"
       nbt:
         potion_contents: "harming" # Covers both Harming I and II!
 
@@ -215,13 +215,13 @@ item-limits:
   subtitle: "Drop excess items to move"
 
   limits:
-    - material: TOTEM_OF_UNDYING
+    - material: "minecraft:totem_of_undying"
       limit: 1
-    - material: ENDER_PEARL
+    - material: "minecraft:ender_pearl"
       limit: 32
-    - material: COBWEB
+    - material: "minecraft:cobweb"
       limit: 64
-    - material: EXPERIENCE_BOTTLE
+    - material: "minecraft:experience_bottle"
       limit: 128
 
   # Group limits (Weighted items)
@@ -229,58 +229,30 @@ item-limits:
     wind_items:
       limit: 64
       items:
-        - material: WIND_CHARGE
+        - material: "minecraft:wind_charge"
           weight: 1
-        - material: BREEZE_ROD
+        - material: "minecraft:breeze_rod"
           weight: 4
     turtle_master:
       limit: 2
       items:
-    #   Sorry there isn't a very good way to intuitively implement inclusive item formatting here
-        - material: POTION
+        - material: "minecraft:potion"
           weight: 2
           nbt:
             potion_contents: "minecraft:strong_turtle_master"
-        - material: POTION
+        - material: "minecraft:potion"
           weight: 1
           nbt:
             potion_contents: "minecraft:long_turtle_master"
-        - material: POTION
-          weight: 1
-          nbt:
-            potion_contents: "minecraft:turtle_master"
-        - material: SPLASH_POTION
-          weight: 2
-          nbt:
-            potion_contents: "minecraft:strong_turtle_master"
-        - material: SPLASH_POTION
-          weight: 1
-          nbt:
-            potion_contents: "minecraft:long_turtle_master"
-        - material: SPLASH_POTION
-          weight: 1
-          nbt:
-            potion_contents: "minecraft:turtle_master"
-        - material: LINGERING_POTION
-          weight: 2
-          nbt:
-            potion_contents: "minecraft:strong_turtle_master"
-        - material: LINGERING_POTION
-          weight: 1
-          nbt:
-            potion_contents: "minecraft:long_turtle_master"
-        - material: LINGERING_POTION
+        - material: "minecraft:potion"
           weight: 1
           nbt:
             potion_contents: "minecraft:turtle_master"
   effects:
-    BLINDNESS:
-      duration: 21 # In ticks
+    "minecraft:blindness":
+      duration: 39 # In ticks
       amplifier: 3
-    SLOWNESS:
-      duration: 21
+    "minecraft:slowness":
+      duration: 39
       amplifier: 3
-    WEAKNESS:
-      duration: 21
-      amplifier: 1
 ```
