@@ -194,4 +194,15 @@ public class EnchantListener implements Listener {
         }
         return null;
     }
+
+    private ConfigurationSection getEffectiveConfig(Material material) {
+        ConfigurationSection specific = getSpecificItemConfig(material);
+        if (specific != null) return specific;
+
+        ConfigurationSection itemsSection = plugin.getConfig().getConfigurationSection("restricted-enchantments.items");
+        if (itemsSection != null && itemsSection.contains("GLOBAL")) {
+            return itemsSection.getConfigurationSection("GLOBAL");
+        }
+        return null;
+    }
 }
