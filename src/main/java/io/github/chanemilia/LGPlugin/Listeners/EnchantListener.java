@@ -42,7 +42,7 @@ public class EnchantListener implements Listener {
 
     @EventHandler
     public void onEnchantItem(EnchantItemEvent event) {
-        ConfigurationSection itemConfig = getSpecificItemConfig(event.getItem().getType());
+        ConfigurationSection itemConfig = getEffectiveConfig(event.getItem().getType());
 
         if (itemConfig != null) {
             boolean showGlint = itemConfig.getBoolean("glint", true);
